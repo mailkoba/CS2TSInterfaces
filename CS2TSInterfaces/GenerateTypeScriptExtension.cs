@@ -17,25 +17,17 @@ namespace CS2TSInterfaces
     {
         public static void GenerateTypeScriptInterfaces(this IApplicationBuilder app,
                                                         Assembly assembly,
-                                                        string path)
-        {
-            app.GenerateTypeScriptInterfaces(assembly, path, new GenerateTypeScriptConfig());
-        }
-
-        public static void GenerateTypeScriptInterfaces(this IApplicationBuilder app,
-                                                        Assembly assembly,
                                                         string path,
-                                                        GenerateTypeScriptConfig config)
+                                                        Action<GenerateTypeScriptConfig> configAction = null)
         {
             if (string.IsNullOrWhiteSpace(path))
             {
                 throw new ArgumentNullException(nameof(path));
             }
 
-            if (config == null)
-            {
-                throw new ArgumentNullException(nameof(config));
-            }
+            _config = new GenerateTypeScriptConfig();
+
+            configAction?.Invoke(_config);
 
             var directory = Path.GetDirectoryName(path);
 
@@ -48,8 +40,6 @@ namespace CS2TSInterfaces
             {
                 Directory.CreateDirectory(directory);
             }
-
-            _config = config;
 
             FindAndProcess(assembly, path);
         }

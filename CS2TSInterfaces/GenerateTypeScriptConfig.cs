@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace CS2TSInterfaces
 {
-    public class GenerateTypeScriptConfig
+    public sealed class GenerateTypeScriptConfig
     {
         public bool StoreInSingleFile { get; set; } = true;
 
