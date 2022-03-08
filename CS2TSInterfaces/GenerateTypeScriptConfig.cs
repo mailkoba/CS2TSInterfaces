@@ -52,6 +52,16 @@ namespace CS2TSInterfaces
             return AddExcludeType(typeof(T));
         }
 
+        public GenerateTypeScriptConfig AddExcludeTypes(params string[] typeNames)
+        {
+            foreach (var typeName in typeNames)
+            {
+                AddExcludeType(typeName);
+            }
+
+            return this;
+        }
+
         public GenerateTypeScriptConfig AddExcludeType(string typeName)
         {
             if (string.IsNullOrWhiteSpace(typeName))
