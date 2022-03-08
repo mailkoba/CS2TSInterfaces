@@ -89,6 +89,25 @@ config.AddExcludeType("ContainerDto`1");
 ...
 ```
 
+#### TsNullableAttribute
+
+If property of class type marked by TsNullable attribute TS interface will be generated like this:
+
+```csharp
+class DemoTsNullable
+{
+    [TsNullable]
+    public int NullableField { get; set; }
+}
+
+...
+
+export interface DemoTsNullable {
+    nullableField?: string | null | undefined;
+}
+```
+
+
 #### Platform
 
 .Net Core 2.x, .Net Core 3.x, .Net Framework >= 4.7.
