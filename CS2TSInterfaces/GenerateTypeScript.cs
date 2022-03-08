@@ -8,15 +8,13 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CS2TSInterfaces
 {
-    public static class GenerateTypeScriptExtension
+    public static class GenerateTypeScript
     {
-        public static void GenerateTypeScriptInterfaces(this IApplicationBuilder app,
-                                                        Assembly assembly,
+        public static void GenerateTypeScriptInterfaces(Assembly assembly,
                                                         string path,
                                                         Action<GenerateTypeScriptConfig> configAction = null)
         {
@@ -61,8 +59,8 @@ namespace CS2TSInterfaces
             );
 
             var types = actions.SelectMany(
-                                   x => new[] { x.ReturnType }.Concat(x.GetParameters()
-                                                                     .Select(p => p.ParameterType)));
+                x => new[] { x.ReturnType }.Concat(x.GetParameters()
+                                                  .Select(p => p.ParameterType)));
 
             if (_config.IncludeTypes.Any())
             {
@@ -130,8 +128,10 @@ namespace CS2TSInterfaces
                     {
                         foreach (var dependency in processedInfo.Dependencies)
                         {
-                            sw.WriteLine($"import {{ {dependency} }} from \"./{dependency}{DeclarationFileExtension}\";");
+                            sw.WriteLine(
+                                $"import {{ {dependency} }} from \"./{dependency}{DeclarationFileExtension}\";");
                         }
+
                         sw.WriteLine();
                     }
 
@@ -153,6 +153,7 @@ namespace CS2TSInterfaces
 
         private static void FillProcessingTypes(Type initType, List<Info> infos)
         {
+            var name = initType.Name;
             if (IsExclusionType(initType) ||
                 KnownTypes.Contains(initType) ||
                 infos.Any(i => i.Type == initType || FilterType(i.Type) == FilterType(initType)))
@@ -177,7 +178,7 @@ namespace CS2TSInterfaces
             infos.Add(new Info
             {
                 Type = initType,
-                IsEnum = false
+                IsEnum = initType.GetTypeInfo().IsEnum
             });
 
             var fields = initType
@@ -294,7 +295,8 @@ namespace CS2TSInterfaces
                    t == typeof(Guid) ||
                    Nullable.GetUnderlyingType(t) != null ||
                    IsCompilerGenerated(t) ||
-                   _config.ExcludeTypes.Contains(t);
+                   _config.ExcludeTypes.Contains(t) ||
+                   _config.ExcludeTypeNames.Any(x => new Regex(x).IsMatch(t.FullName));
         }
 
         /// <summary>
@@ -354,10 +356,15 @@ namespace CS2TSInterfaces
                 var innerType = Nullable.GetUnderlyingType(mi.PropertyType);
                 var typeName = GetTypeName(innerType ?? mi.PropertyType);
 
-                sb.AppendFormat("    {0}{1}: {2};",
+                var markedAsTsNullable = MarkedAsTsNullable(mi);
+
+                sb.AppendFormat("    {0}{1}: {2}{3}{4};",
                                 ToCamelCase(mi.Name),
-                                innerType != null ? "?" : string.Empty,
-                                typeName);
+                                (innerType != null || markedAsTsNullable) ? "?" : string.Empty,
+                                typeName,
+                                innerType != null ? " | null" : string.Empty,
+                                markedAsTsNullable ? " | undefined" : string.Empty);
+
                 sb.AppendLine();
 
                 if (KnownTypes.Contains(innerType ?? mi.PropertyType))
@@ -394,6 +401,11 @@ namespace CS2TSInterfaces
                 TypeName = t.Name,
                 Value = sb.ToString()
             };
+        }
+
+        private static bool MarkedAsTsNullable(PropertyInfo pi)
+        {
+            return pi.GetCustomAttribute<TsNullableAttribute>() != null;
         }
 
         private static string ToCamelCase(string s)
@@ -491,8 +503,8 @@ namespace CS2TSInterfaces
         };
 
         private static readonly HashSet<Type> KnownTypes = new HashSet<Type>();
-        private const string SingleFileName = "models.d.ts";
-        private const string DeclarationFileExtension = ".d.ts";
+        private const string SingleFileName = "data.model.ts";
+        private const string DeclarationFileExtension = ".ts";
 
         private static GenerateTypeScriptConfig _config;
 

@@ -17,6 +17,7 @@ Library for creates TypeScript data models by ASP .Net Web API declaration
   * HttpOptions
   * HttpPatch
   * HttpPut
+* Can process Api methods signature for extract class types (input parameters and return value)
 
 #### Mapping rules
 
@@ -33,46 +34,60 @@ Library for creates TypeScript data models by ASP .Net Web API declaration
 
 #### Usage
 
-1. Run from custom console application
+Run from custom console application. See TsGenerator sample project.
 ```csharp
-var tsDefinitionsFullPath = Path.Combine(env.ContentRootPath, "./src/app/models/");
-app.GenerateTypeScriptInterfaces(Assembly.GetExecutingAssembly(), tsDefinitionsFullPath);
-```
-
-2. Run from source ASP .Net Core Web application
-
-2.1. Create custom launch settings profile in Visual Studio
-
-|Parameter|Value|
-|:---|:---|
-|Profile|Generate TS interfaces|
-|Launch|Project|
-|Environment variables| Name: ASPNETCORE_ENVIRONMENT, Value: GENERATE_TS|
-
-2.2 Modify Startup
-
-```csharp
-public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IServiceProvider serviceProvider, ILogger logger)
-{
-    ...
-    if (env.EnvironmentName == "GENERATE_TS")
+var tsDefinitionsFullPath = Path.GetFullPath("../../../../models");
+GenerateTypeScript.GenerateTypeScriptInterfaces(
+    typeof(Startup).Assembly,
+    tsDefinitionsFullPath,
+    config =>
     {
-        var tsDefinitionsFullPath = Path.Combine(env.ContentRootPath, "./ClientApp/src/app/models/");
-        app.GenerateTypeScriptInterfaces(Assembly.GetExecutingAssembly(), tsDefinitionsFullPath);
-
-        Environment.Exit(0);
-
-        return;
-    }
-    ...
-}
+        config.AddAssembly(typeof(Startup).Assembly)
+              .AddIncludeType<RequestDto>();
+});
 ```
-
-2.3. Run Web site with profile "Generate TS interfaces" from Visual Studio.
 
 #### Configuring options
 
+Run main method:
+```csharp
+static void GenerateTypeScriptInterfaces(Assembly assembly,
+                                         string path,
+                                         Action<GenerateTypeScriptConfig> configAction = null);
+```
+
+- assembly - main assembly of web site application
+- path - path for store generated TS file(s)
+- configAction - for add custom settings
+
+GenerateTypeScriptConfig contain several methods and properties:
+
+| Method / Property | Type | Description |
+|---|---|
+| StoreInSingleFile | bool | If true all TS interfaces located in one single "data.model.ts" file. Overwise for each type creates single file with ".ts" extension. Default true |
+| AddAssembly | Assembly | Register assembly contains additional classes for processing to TS |
+| AddIncludeType | Type | Register class type for processing to TS |
+| AddIncludeType | < T > | Register class type for processing to TS |
+| AddIncludeType | string | Register class types for processing to TS by setting reqular expression |
+| AddExcludeType | Type | Register class type for exclude in processing to TS |
+| AddExcludeType | < T > | Register class type for exclude in processing to TS |
+| AddExcludeType | string | Register class types for exclude in processing to TS by setting reqular expression |
+| AddExcludeTypes | string[] | Register class types for exclude in processing to TS by setting reqular expression |
+
+#### Note
+
+Class types declared by generics (non standard like IEnumerable) is not supported and must by excluded by calling AddExcludeType.
+
+```csharp
+public class ContainerDto<TData>
+{
+    public TData Data { get; set; }
+}
+
 ...
+config.AddExcludeType("ContainerDto`1");
+...
+```
 
 #### Platform
 
