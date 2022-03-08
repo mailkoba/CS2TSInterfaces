@@ -62,17 +62,17 @@ static void GenerateTypeScriptInterfaces(Assembly assembly,
 
 GenerateTypeScriptConfig contain several methods and properties:
 
-| Method / Property | Type | Description |
-|---|---|
-| StoreInSingleFile | bool | If true all TS interfaces located in one single "data.model.ts" file. Overwise for each type creates single file with ".ts" extension. Default true |
-| AddAssembly | Assembly | Register assembly contains additional classes for processing to TS |
-| AddIncludeType | Type | Register class type for processing to TS |
-| AddIncludeType | < T > | Register class type for processing to TS |
-| AddIncludeType | string | Register class types for processing to TS by setting reqular expression |
-| AddExcludeType | Type | Register class type for exclude in processing to TS |
-| AddExcludeType | < T > | Register class type for exclude in processing to TS |
-| AddExcludeType | string | Register class types for exclude in processing to TS by setting reqular expression |
-| AddExcludeTypes | string[] | Register class types for exclude in processing to TS by setting reqular expression |
+|Method / Property|Type|Description|
+|---|---|---|
+|StoreInSingleFile|bool|If true all TS interfaces located in one single "data.model.ts" file. Overwise for each type creates single file with ".ts" extension. Default true|
+|AddAssembly|Assembly|Register assembly contains additional classes for processing to TS|
+|AddIncludeType|Type|Register class type for processing to TS|
+|AddIncludeType|< T >|Register class type for processing to TS|
+|AddIncludeType|string|Register class types for processing to TS by setting reqular expression|
+|AddExcludeType|Type|Register class type for exclude in processing to TS|
+|AddExcludeType|< T >|Register class type for exclude in processing to TS|
+|AddExcludeType|string|Register class types for exclude in processing to TS by setting reqular expression|
+|AddExcludeTypes|string[]|Register class types for exclude in processing to TS by setting reqular expression|
 
 #### Note
 
